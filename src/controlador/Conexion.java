@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import modelo.DtoTransaccion;
 import modelo.Transaccion;
+import modelo.Vendedor;
 
 public class Conexion {
 
@@ -47,10 +49,61 @@ public class Conexion {
 		return resultado;
 	}
 
+	public ArrayList<DtoTransaccion> obtenerTodasLasTransaccionesDto() {
+		ArrayList<DtoTransaccion> resultado = new ArrayList<>();
+
+		try {
+			Connection conn = DriverManager.getConnection(CONN, USER, PASS);
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM Transacciones JOIN Vendedores v ON idVendedor = v.id");
+
+			while (rs.next()) {
+				String fecha = rs.getString(2);
+				int tipoOperacion = rs.getInt(4);
+				int tipoInmueble = rs.getInt(5);
+				double monto = rs.getDouble(6);
+				String nombreVendedor = rs.getString("nombreCompleto");
+
+				String nombreOperacion = "";
+				if (tipoOperacion == 1) {
+					nombreOperacion = "Alquiler";
+				} else {
+					nombreOperacion = "Venta";
+				}
+
+				String nombreInmueble = "";
+				switch (tipoInmueble) {
+					case 1:
+						nombreInmueble = "Oficina";
+						break;
+					case 2:
+						nombreInmueble = "Local";
+						break;
+					default:
+						nombreInmueble = "Casa";
+						break;
+				}
+
+				DtoTransaccion t = new DtoTransaccion(fecha, nombreVendedor, nombreOperacion, nombreInmueble, monto);
+
+				resultado.add(t);
+			}
+
+			rs.close();
+			stmt.close();
+			conn.close();
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}
+
+		return resultado;
+	}
+
 	public void agregarTransaccion(Transaccion t) {
 		try {
 			Connection conn = DriverManager.getConnection(CONN, USER, PASS);
-			PreparedStatement pstmt = conn.prepareStatement("INSERT INTO Transaccion VALUES (?,?,?,?,?)");
+			PreparedStatement pstmt = conn.prepareStatement("INSERT INTO Transacciones VALUES (?,?,?,?,?)");
 			pstmt.setString(1, t.getFecha());
 			pstmt.setInt(2, t.getIdVendedor());
 			pstmt.setInt(3, t.getTipoOperacion());
@@ -66,5 +119,32 @@ public class Conexion {
 		}
 	}
 
+	public ArrayList<Vendedor> obtenerTodosLosVendedores() {
+		ArrayList<Vendedor> lista = new ArrayList<>();
+
+	try {
+			Connection conn = DriverManager.getConnection(CONN, USER, PASS);
+			Statement stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery("SELECT * FROM Vendedores");
+
+			while (rs.next()) {
+				int id = rs.getInt(1);
+				String nombreCompleto = rs.getString(2);
+
+				Vendedor v = new Vendedor(id, nombreCompleto);
+
+				lista.add(v);
+			}
+
+			rs.close();
+			stmt.close();
+			conn.close();
+
+		} catch (SQLException ex) {
+			ex.printStackTrace();
+		}	
+
+		return lista;
+	}
 	
 }

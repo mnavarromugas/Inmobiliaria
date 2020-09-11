@@ -5,17 +5,58 @@
  */
 package vista;
 
+import controlador.Conexion;
+import java.util.ArrayList;
+import javax.swing.table.DefaultTableModel;
+import modelo.DtoTransaccion;
+import modelo.Transaccion;
+import modelo.Vendedor;
+
 /**
  *
  * @author mnava
  */
 public class VentanaTransacciones extends javax.swing.JFrame {
+	private Conexion c;
 
 	/**
 	 * Creates new form VentanaTransacciones
 	 */
 	public VentanaTransacciones() {
 		initComponents();
+
+		c = new Conexion();
+
+		cargarVendedores();
+		cargarTabla();
+	}
+
+	private void cargarVendedores() {
+		ArrayList<Vendedor> vendedores = c.obtenerTodosLosVendedores();
+
+		for (Vendedor v : vendedores) {
+			cboVendedor.addItem(v);
+		}
+	}
+
+	private void cargarTabla() {
+		DefaultTableModel dm = new DefaultTableModel();
+		dm.setColumnIdentifiers(new String[]{"fecha", "vendedor", "operacion", "inmueble", "monto"});
+
+		ArrayList<DtoTransaccion> lista = c.obtenerTodasLasTransaccionesDto();
+
+		for (DtoTransaccion t : lista) {
+			
+			dm.addRow(new String[]{
+				t.fecha,
+				t.nombreVendedor,
+				t.tipoOperacion,
+				t.tipoInmueble,
+				String.valueOf(t.monto)
+			});
+		}
+
+		lstTabla.setModel(dm);
 	}
 
 	/**
@@ -28,7 +69,7 @@ public class VentanaTransacciones extends javax.swing.JFrame {
     private void initComponents() {
 
         jScrollPane1 = new javax.swing.JScrollPane();
-        jTable1 = new javax.swing.JTable();
+        lstTabla = new javax.swing.JTable();
         jLabel1 = new javax.swing.JLabel();
         txtFecha = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
@@ -44,7 +85,7 @@ public class VentanaTransacciones extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
+        lstTabla.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {},
                 {},
@@ -55,7 +96,7 @@ public class VentanaTransacciones extends javax.swing.JFrame {
 
             }
         ));
-        jScrollPane1.setViewportView(jTable1);
+        jScrollPane1.setViewportView(lstTabla);
 
         jLabel1.setText("fecha");
 
@@ -70,6 +111,11 @@ public class VentanaTransacciones extends javax.swing.JFrame {
         cboTipoInmueble.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Oficina", "Local", "Casa" }));
 
         btnAgregar.setText("Agregar");
+        btnAgregar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnAgregarActionPerformed(evt);
+            }
+        });
 
         btnReportes.setText("Reportes");
         btnReportes.addActionListener(new java.awt.event.ActionListener() {
@@ -149,6 +195,19 @@ public class VentanaTransacciones extends javax.swing.JFrame {
 		vr.setVisible(true);
     }//GEN-LAST:event_btnReportesActionPerformed
 
+    private void btnAgregarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnAgregarActionPerformed
+		String fecha = txtFecha.getText();
+		Vendedor v = (Vendedor) cboVendedor.getSelectedItem();
+		int tipoOperacion = cboTipoOperacion.getSelectedIndex()+1;
+		int tipoInmueble = cboTipoInmueble.getSelectedIndex()+1;
+		double monto = Double.parseDouble(txtMonto.getText());
+
+		Transaccion t = new Transaccion(fecha, v.getId(), tipoOperacion, tipoInmueble, monto);
+		c.agregarTransaccion(t);
+
+		cargarTabla();
+    }//GEN-LAST:event_btnAgregarActionPerformed
+
 
 	/**
 	 * @param args the command line arguments
@@ -197,7 +256,7 @@ public class VentanaTransacciones extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTable jTable1;
+    private javax.swing.JTable lstTabla;
     private javax.swing.JTextField txtFecha;
     private javax.swing.JTextField txtMonto;
     // End of variables declaration//GEN-END:variables

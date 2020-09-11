@@ -27,7 +27,7 @@ public class Vendedor {
 
 	@Override
 	public String toString() {
-		return "Vendedor{" + "id=" + id + ", nombreCompleto=" + nombreCompleto + '}';
+		return nombreCompleto;
 	}
 	
 }
